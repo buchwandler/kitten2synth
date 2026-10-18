@@ -2,7 +2,6 @@ from pathlib import Path
 
 from kitten2synth.catalog import bundle_record, catalog_item, load_catalog
 
-
 CATALOG = Path(__file__).resolve().parent / "fixtures" / "bundles.json"
 
 

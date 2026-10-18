@@ -7,7 +7,7 @@ from onnxvoice import OnnxVoice
 from onnxvoice.errors import AssetNotFoundError, NotInstalledError
 
 from .adapter import register
-from .catalog import install_bundle, load_catalog, bundle_record, catalog_item
+from .catalog import bundle_record, catalog_item, install_bundle, load_catalog
 from .errors import CatalogError, InvalidBundleError
 from .types import SynthesisResult
 

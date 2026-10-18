@@ -1,0 +1,6 @@
+schema_version = 1
+layout_version = 3
+project_uuid = "9f2f4c14-4fa3-494f-9d5b-b766a85709b4"
+tool = "releaseledger"
+mount = "data"
+storage = "project"
