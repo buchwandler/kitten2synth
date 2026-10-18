@@ -1,0 +1,145 @@
+{
+  "bundles": {
+    "kitten-tts-v2": {
+      "aliases": ["v2", "default"],
+      "artifacts": [
+        {
+          "path": "bundle.json",
+          "role": "bundle",
+          "sha256": "c918068090a9fcc0d27e7905ecc1d322c801dd8d10ac3c5490de0b41ba6873d9"
+        },
+        {
+          "path": "decoder/flow/flow.meta.json",
+          "role": "asset",
+          "sha256": "f102f02e11685117cbbf0974cacc8474f1ba87294b24136ace1f8096d951f623"
+        },
+        {
+          "path": "decoder/flow/flow.onnx",
+          "role": "asset",
+          "sha256": "2ebcc43885bd0b12e947a2bada630ec959805dcd02327b22f94dbd5da3ffe7d8"
+        },
+        {
+          "path": "decoder/mel2wav/mel2wav.meta.json",
+          "role": "asset",
+          "sha256": "62935a613941c6898a6284b36b9f892fea6d2b9c801bf00042f4fffe4070f5cc"
+        },
+        {
+          "path": "decoder/mel2wav/mel2wav.onnx",
+          "role": "asset",
+          "sha256": "abca18f094418aa26223b1bff652fde41949138d23a5aa1fd6eaeffc6f3bfc1a"
+        },
+        {
+          "path": "decoder/mel2wav/mel2wav.onnx.data",
+          "role": "asset",
+          "sha256": "dfcab0a2769ecbdaddbb0bb3bbeb20640a61ef8ff1e272a5a3d4ee4cd58229c0"
+        },
+        {
+          "path": "lm/embed_tokens.bf16.npy",
+          "role": "asset",
+          "sha256": "24f931859516aac98525c14535bbf1f971d4b500f984c414f1d8052aef3a7b08"
+        },
+        {
+          "path": "lm/lm.meta.json",
+          "role": "asset",
+          "sha256": "2d608cde167037ef3d3a620b136ab1539877cc2b6043c7b3f5eb256901001018"
+        },
+        {
+          "path": "lm/lm.onnx",
+          "role": "asset",
+          "sha256": "7f27313ad35b3ddfbf23663849a62bb0640c38c0ee89ee11046bf31d689bbb09"
+        },
+        {
+          "path": "lm/lm.ternary-exact-int8.onnx.data",
+          "role": "asset",
+          "sha256": "cab262d35d62fe78e93252d6cda08261cc51dc8737e12f67396feb3dff9c04d3"
+        },
+        {
+          "path": "speaker/speaker.meta.json",
+          "role": "asset",
+          "sha256": "c22384beed5e63a171e00641a2255a2448ca29762f8938fb6ac885f622b08c11"
+        },
+        {
+          "path": "speaker/speaker.onnx",
+          "role": "asset",
+          "sha256": "76a6423a206c922eae1cb2968fbc776ba2d46b51a2563effdd31615891e5f080"
+        },
+        {
+          "path": "tokenizer/added_tokens.json",
+          "role": "asset",
+          "sha256": "f757d3b2e5381b23765a7177bb76afd6f44f3ac8e9eb585fc39333e4769001f3"
+        },
+        {
+          "path": "tokenizer/config.json",
+          "role": "asset",
+          "sha256": "91378d01ae13755f130e3b714abfe57e8a48d15a88fc0d3a1414f30af76d3f2b"
+        },
+        {
+          "path": "tokenizer/generation_config.json",
+          "role": "asset",
+          "sha256": "d3e057bbca66b92f33a8bdc6a1301014e0e4ab69b3b3fd2e442d9fe0c69f3431"
+        },
+        {
+          "path": "tokenizer/merges.txt",
+          "role": "asset",
+          "sha256": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5"
+        },
+        {
+          "path": "tokenizer/special_tokens_map.json",
+          "role": "asset",
+          "sha256": "a67cddf2259d77b5021cfa9a5608e60779f19c4828567b2ae46604f23fc0c569"
+        },
+        {
+          "path": "tokenizer/tokenizer.json",
+          "role": "asset",
+          "sha256": "99644fcf19a9aff57b247b4e56fffe878c65d9c230d21a46caf9acf8f54d31d7"
+        },
+        {
+          "path": "tokenizer/tokenizer_config.json",
+          "role": "asset",
+          "sha256": "ce07c343b7bb1d9b822475beb46e39b3883706bfb5bbc3d080142ccd321beea3"
+        },
+        {
+          "path": "tokenizer/vocab.json",
+          "role": "asset",
+          "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+        },
+        {
+          "path": "voices/Bruno.meta.json",
+          "role": "asset",
+          "sha256": "068e30a5a59709c2976e987f15277659f9f54d2d50c7db4973c11811467fc80a"
+        },
+        {
+          "path": "voices/Bruno.npz",
+          "role": "asset",
+          "sha256": "a23d113ba7eb5e218838a4e5a5e81be9a9d9447827ea1d6521a5b33a25ddd571"
+        }
+      ],
+      "default_voice": "Bruno",
+      "id": "kitten-tts-v2",
+      "layout": "kitten2-onnx-bundle-v1",
+      "metadata": {
+        "default_preset": "stable",
+        "mvp_unpinned_revision": true,
+        "source_model_repository": "KittenML/kitten-tts-2",
+        "source_model_revision": "fa8ce5c7547e322a065cad9b813d27a78fad9640"
+      },
+      "name": "KittenTTS 2 ONNX",
+      "runtime": {
+        "bundle_format": "kitten2-onnx-bundle-v1",
+        "engine": "kitten2_onnx",
+        "lm_optimization": "ternary-exact-int8",
+        "opset": 18
+      },
+      "sample_rate": 24000,
+      "source": {
+        "license": "stellon-labs-community-license",
+        "provider": "huggingface",
+        "repository": "holgern/kitten-tts-v2-onnx",
+        "revision": "main"
+      },
+      "voices": ["Bruno"]
+    }
+  },
+  "kind": "kitten2-onnx-bundle-catalog",
+  "schema": 1
+}

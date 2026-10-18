@@ -1,0 +1,3 @@
+kitten2synth is an Apache-2.0 licensed integration layer.
+KittenTTS 2 model weights are separate artifacts and remain subject to their upstream license.
+The MVP bridge delegates generation to the existing kitten2-onnx runtime while ONNXVoice owns adapter registration and managed asset storage.
