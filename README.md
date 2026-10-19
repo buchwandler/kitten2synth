@@ -1,72 +1,32 @@
-# kitten2synth MVP
+# kitten2synth
 
-A starter package for consuming the new KittenTTS 2 ONNX bundle through **ONNXVoice**.
+A small Python and CLI facade for KittenTTS 2. ONNXVoice owns the Kitten2 runtime, catalog, bundle validation, installation, and synthesis. `kitten2synth` provides convenient runtime construction, result wrapping, and WAV output.
 
-## MVP architecture
+## Architecture
 
 ```text
 kitten2synth
-    |
-    | custom Kitten2 catalog -> ONNXVoice CatalogItem/Artifact
+    | high-level Python and CLI API
     v
-ONNXVoice AssetStore
-    |
-    | verified managed installation
+ONNXVoice
+    | native Kitten2 catalog and Kitten2Adapter
     v
-ONNXVoice registered `kitten2` adapter
-    |
-    | MVP bridge
-    v
-kitten2_onnx.tts.Kitten2OnnxTTS
-    |
-    v
-lm + speaker + flow + mel2wav -> 24 kHz audio
+KittenTTS 2 ONNX bundle
 ```
 
-This intentionally mirrors the separation used by `qwen3synth`: the application package owns
-text-to-speech ergonomics while ONNXVoice owns model installations and the runtime adapter
-boundary.
+Importing this package does not modify ONNXVoice's adapter registry. The package does not parse catalogs, validate bundle layouts, or preprocess expression markup.
 
-The current ONNXVoice release already supports runtime adapter registration, but its built-in
-`kitten` adapter is the old Kitten v0.8 single-graph contract. Therefore this MVP registers a
-new `kitten2` adapter at import time and delegates the actual v2 generation pipeline to your
-existing, validated `kitten2-onnx` implementation.
+## Install
 
-## Install for development
-
-Assuming sibling checkouts:
-
-```text
-src/
-├── kitten2-onnx/
-├── kitten2-onnx-bundles/
-└── kitten2synth/
-```
-
-Install the existing engine and this package:
+The normal dependency includes ONNXVoice's Kitten2 feature and tokenizer support. Install an execution provider with one of these extras:
 
 ```bash
-cd ../kitten2-onnx
-python -m pip install -e .
-
-cd ../kitten2synth
-python -m pip install -e ".[cpu]"
+python -m pip install "kitten2synth[cpu]"
+# or
+python -m pip install "kitten2synth[gpu]"
 ```
 
-## 1. Test a local bundle first
-
-```bash
-kitten2synth \
-  --bundle-dir /path/to/kitten-tts-v2-onnx \
-  --voice Bruno \
-  --preset stable \
-  --seed 7 \
-  --max-new-tokens 64 \
-  --output hello.wav \
-  "Hello from KittenTTS 2."
-```
-
-Python:
+## Local bundle
 
 ```python
 from kitten2synth import Kitten2Runtime
@@ -78,40 +38,56 @@ with Kitten2Runtime.load("/path/to/kitten-tts-v2-onnx") as runtime:
         preset="stable",
         seed=7,
     )
-    result.save_wav("hello.wav")
+    result.save_wav("hello-local.wav")
 ```
 
-## 2. Test managed install from the companion catalog
+The local bundle must contain `bundle.json`. ONNXVoice validates and opens the bundle.
 
-Before `kitten2-onnx-bundles` is published on GitHub, point directly at its local JSON:
+## Managed bundle
+
+```python
+from kitten2synth import Kitten2Runtime
+
+with Kitten2Runtime.from_pretrained("kitten-tts-v2") as runtime:
+    result = runtime.generate(
+        "Hello from KittenTTS 2.",
+        voice="Bruno",
+        preset="stable",
+    )
+    result.save_wav("hello-managed.wav")
+```
+
+ONNXVoice installs and caches the bundle using its configured Kitten2 catalog. To use a catalog file or a custom cache, pass `catalog=` or `cache_dir=`. `Kitten2Runtime.from_installed()` opens an already installed bundle without downloading it.
+
+## Expression markup
+
+Pass expression markup directly to ONNXVoice. `kitten2synth` does not inspect or rewrite it.
+
+```python
+from kitten2synth import Kitten2Runtime
+
+with Kitten2Runtime.from_pretrained("kitten-tts-v2") as runtime:
+    result = runtime.generate(
+        "[joyful] We won the grant <laugh> I can (((hardly))) believe it!",
+        voice="Kiki",
+        preset="expressive",
+    )
+    result.save_wav("kiki-expressive.wav")
+```
+
+The request combines the `[joyful]` emotion, `<laugh>` event, `(((hardly)))` emphasis, `Kiki` voice, and `expressive` preset.
+
+The equivalent CLI request accepts the markup literally:
 
 ```bash
 kitten2synth \
-  --catalog ../kitten2-onnx-bundles/catalog/bundles.json \
   --bundle kitten-tts-v2 \
-  --voice Bruno \
-  --preset stable \
-  --output hello-managed.wav \
-  "Hello from the managed model."
+  --voice Kiki \
+  --preset expressive \
+  --output kiki-expressive.wav \
+  '[joyful] We won the grant <laugh> I can (((hardly))) believe it!'
 ```
 
-That path downloads every catalog artifact into the ONNXVoice content-addressed cache,
-checks the bundle SHA-256 values, reconstructs the nested bundle layout, then opens it through
-the registered `kitten2` adapter.
+For a local bundle, use `--bundle-dir` instead of `--bundle`. The CLI also supports `--catalog`, `--cache-dir`, `--provider`, `--seed`, and `--max-new-tokens`.
 
-## Important MVP limitation
-
-`kitten2synth` still needs the local `kitten2-onnx` Python package because the full v2
-generation/decoder implementation has not yet been moved into ONNXVoice. This is deliberate:
-it avoids rewriting a pipeline you have already validated while you establish the new package
-and catalog boundaries.
-
-The next milestone is to upstream the bridge implementation into ONNXVoice as a native
-`onnxvoice.systems.kitten2.Kitten2Adapter`. At that point:
-
-1. remove the `kitten2-onnx` runtime dependency from this package;
-2. teach ONNXVoice's catalog client/CLI the `kitten2-onnx-bundle-catalog` schema;
-3. replace `manager.store.install(item)` with normal `manager.install("kitten2:kitten-tts-v2")`;
-4. keep the public `Kitten2Runtime` API unchanged.
-
-See `docs/onnxvoice-native-next.md`.
+See `examples/` for complete local, managed, and expressive scripts. The earlier migration brief is retained as a historical note in `docs/onnxvoice-native-next.md`.

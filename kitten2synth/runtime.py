@@ -4,39 +4,12 @@ from pathlib import Path
 from typing import Any
 
 from onnxvoice import OnnxVoice
-from onnxvoice.errors import AssetNotFoundError, NotInstalledError
 
-from .adapter import register
-from .catalog import bundle_record, catalog_item, install_bundle, load_catalog
-from .errors import CatalogError, InvalidBundleError
 from .types import SynthesisResult
-
-register()
-
-
-def _local_files(directory: Path) -> dict[str, Path]:
-    import json
-
-    manifest_path = directory / "bundle.json"
-    if not manifest_path.is_file():
-        raise InvalidBundleError(f"missing bundle.json: {manifest_path}")
-    try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise InvalidBundleError(f"invalid bundle.json: {exc}") from exc
-    if manifest.get("format") != "kitten2-onnx-bundle-v1":
-        raise InvalidBundleError(f"unsupported bundle format: {manifest.get('format')!r}")
-    files: dict[str, Path] = {"bundle": manifest_path}
-    for index, relative in enumerate(sorted(manifest.get("files", {}))):
-        path = directory / relative
-        if not path.is_file():
-            raise InvalidBundleError(f"bundle is missing {relative}")
-        files[f"asset:{index:03d}"] = path
-    return files
 
 
 class Kitten2Runtime:
-    """High-level KittenTTS 2 frontend backed by an ONNXVoice adapter."""
+    """High-level KittenTTS 2 frontend backed by ONNXVoice's native adapter."""
 
     def __init__(self, adapter: Any, *, manager: OnnxVoice | None = None) -> None:
         self.adapter = adapter
@@ -52,10 +25,8 @@ class Kitten2Runtime:
         directory = Path(directory).expanduser().resolve()
         adapter = OnnxVoice.open_local(
             system="kitten2",
-            files=_local_files(directory),
-            sample_rate=24000,
+            files={"bundle": directory / "bundle.json"},
             providers=provider,
-            metadata={"runtime": {"layout": "kitten2-onnx-bundle-v1"}},
         )
         return cls(adapter)
 
@@ -69,12 +40,12 @@ class Kitten2Runtime:
         provider: str = "cpu",
         force: bool = False,
     ) -> Kitten2Runtime:
-        manager, installation = install_bundle(
-            bundle,
-            catalog=catalog,
-            cache_dir=cache_dir,
-            force=force,
-        )
+        sources = None
+        if catalog is not None:
+            sources = {"kitten2": str(Path(catalog).expanduser())}
+
+        manager = OnnxVoice(cache_dir=cache_dir, catalog_sources=sources)
+        installation = manager.install(f"kitten2:{bundle}", force=force)
         adapter = manager.open(installation, providers=provider)
         return cls(adapter, manager=manager)
 
@@ -87,16 +58,12 @@ class Kitten2Runtime:
         cache_dir: str | Path | None = None,
         provider: str = "cpu",
     ) -> Kitten2Runtime:
-        data = load_catalog(catalog)
-        record = bundle_record(bundle, data)
-        manager = OnnxVoice(cache_dir=cache_dir, offline=True)
-        item = catalog_item(record)
-        try:
-            installation = manager.store.get(item.system, item.id)
-            manager.store.verify(installation)
-        except (AssetNotFoundError, NotInstalledError) as exc:
-            raise CatalogError(f"bundle is not installed: {item.ref}") from exc
-        adapter = manager.open(installation, providers=provider)
+        sources = None
+        if catalog is not None:
+            sources = {"kitten2": str(Path(catalog).expanduser())}
+
+        manager = OnnxVoice(cache_dir=cache_dir, catalog_sources=sources, offline=True)
+        adapter = manager.open(f"kitten2:{bundle}", providers=provider)
         return cls(adapter, manager=manager)
 
     @property
@@ -105,11 +72,11 @@ class Kitten2Runtime:
 
     @property
     def voices(self) -> tuple[str, ...]:
-        return tuple(self.adapter.installation.voices)
+        return tuple(self.adapter.voices)
 
     @property
-    def default_voice(self) -> str | None:
-        return self.adapter.installation.default_voice
+    def default_voice(self) -> str:
+        return self.adapter.default_voice
 
     def generate(
         self,
@@ -119,6 +86,8 @@ class Kitten2Runtime:
         preset: str | None = None,
         seed: int | None = None,
         max_new_tokens: int = 512,
+        use_emotion: bool | None = None,
+        use_reference_prompt: bool | None = None,
     ) -> SynthesisResult:
         inference = self.adapter.infer_text(
             text,
@@ -126,6 +95,8 @@ class Kitten2Runtime:
             preset=preset,
             seed=seed,
             max_new_tokens=max_new_tokens,
+            use_emotion=use_emotion,
+            use_reference_prompt=use_reference_prompt,
         )
         return SynthesisResult(
             audio=inference.audio,

@@ -1,9 +1,9 @@
 [codecrate]
-output = "context_kitten2ssynth.md"
+output = "context_kitten2synth.md"
 keep_docstrings = true
 dedupe = true
 respect_gitignore = true
-exclude = ["*/.venv/*", "context_kitten2ssynth.*"]
+exclude = ["*/.venv/*", "context_kitten2synth.*"]
 include = [
   "**/*.py",
   "**/*.json",
